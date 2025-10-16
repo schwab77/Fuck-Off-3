@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <title>Fuck Off Market (PWA)</title>
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
+    <script>
+      if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js')); }
+    </script>
+    <script type="module" src="/src/main.jsx"></script>
+    <link rel="stylesheet" href="/src/style.css">
+  </head>
+  <body class="bg-slate-950 text-slate-100">
+    <div id="gate" class="fixed inset-0 hidden place-items-center bg-slate-950/90 z-[9999]">
+      <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/90 w-[90%] max-w-sm space-y-4 text-center">
+        <div class="text-lg font-semibold">Passwort</div>
+        <input id="gate-input" type="password" class="w-full bg-slate-800 border border-slate-700 rounded p-3 text-sm" placeholder="Password" />
+        <div class="text-xs text-slate-400">Privater Zugang · Fuck Off Market</div>
+        <button id="gate-btn" class="btn w-full">Weiter</button>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script>
+      (async function(){
+        try {
+          const res = await fetch('/config.json', { cache: 'no-store' });
+          const conf = await res.json();
+          window.__FO_CONF__ = conf || {};
+          const pass = conf.APP_PASSWORD || '';
+          if (pass) {
+            const gate = document.getElementById('gate');
+            const btn = document.getElementById('gate-btn');
+            const inp = document.getElementById('gate-input');
+            const ok = localStorage.getItem('fo_pass_ok') === '1';
+            if (!ok) {
+              gate.classList.remove('hidden'); gate.classList.add('grid');
+              btn.onclick = () => {
+                if (inp.value === pass) { localStorage.setItem('fo_pass_ok','1'); gate.classList.add('hidden'); gate.classList.remove('grid'); }
+                else { alert('Falsches Passwort'); }
+              };
+            }
+          }
+          if (conf.ONESIGNAL_APP_ID && window.OneSignal) {
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(function(OneSignal) {
+              OneSignal.SERVICE_WORKER_PARAM = { scope: '/' };
+              OneSignal.SERVICE_WORKER_PATH = 'OneSignalSDKWorker.js';
+              OneSignal.SERVICE_WORKER_UPDATER_PATH = 'OneSignalSDKUpdaterWorker.js';
+              OneSignal.init({ appId: conf.ONESIGNAL_APP_ID, allowLocalhostAsSecureOrigin: true, notifyButton: { enable: true } });
+            });
+          }
+        } catch(e) { console.error(e); }
+      })();
+    </script>
+  </body>
+</html>

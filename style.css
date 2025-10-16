@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn { @apply border border-slate-700 bg-slate-800 rounded-lg px-3 py-2 text-sm; }
+.card { @apply rounded-xl border border-slate-800 bg-slate-900/40; }
